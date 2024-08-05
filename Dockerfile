@@ -16,8 +16,10 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Install any needed packages specified in requirements.txt
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
-RUN  pip install python-multipart
-RUN sudo apt install libgl1-mesa-dev
+RUN pip install python-multipart
+
+# Update the package index and install the necessary library
+RUN apt-get update && apt-get install -y libgl1-mesa-dev
 
 # Install detectron2 precompiled wheel
 RUN pip install detectron2 --extra-index-url https://wheels.myhloli.com
