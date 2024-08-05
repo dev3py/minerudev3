@@ -1,0 +1,11 @@
+{
+    "bucket_info":{
+        "docs-diggy-backup":["AKIASLIJGAUMGAWKN6MS", "ZdH4l4RRwD3vCHi16SoBlxljxqbZmKUDt21VO", "mineru"]
+    },
+    "models-dir":"/PDF-Extract-Kit/models",
+    "device-mode":"cpu",
+    "table-config": {
+        "is_table_recog_enable": false,
+        "max_time": 400
+    }
+}
