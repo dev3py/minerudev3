@@ -7,6 +7,9 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+# Update the package index and install the necessary library
+RUN apt-get update && apt-get install -y libgl1-mesa-dev
+
 # Install venv for creating a virtual environment
 RUN python -m venv /opt/venv
 
@@ -27,14 +30,11 @@ RUN pip install detectron2 --extra-index-url https://wheels.myhloli.com
 # Install magic-pdf full-feature package
 RUN pip install magic-pdf[full]==0.6.2b1
 
-# Copy the models directory to /tmp
-COPY PDF-Extract-Kit/models /tmp/models
-
 # Copy and configure the magic-pdf configuration file
-RUN cp magic-pdf.template.json /root/magic-pdf.json
+RUN cp magic-pdf.json /root/magic-pdf.json
 
-# Ensure the models-dir is set correctly in the configuration file
-RUN sed -i 's|"models-dir": ".*"|"models-dir": "/tmp/models"|' /root/magic-pdf.json
+# # Ensure the models-dir is set correctly in the configuration file
+# RUN sed -i 's|"models-dir": ".*"|"models-dir": "/tmp/models"|' /root/magic-pdf.json
 
 # Install FastAPI and Uvicorn
 RUN pip install fastapi uvicorn

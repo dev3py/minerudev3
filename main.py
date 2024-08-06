@@ -7,8 +7,15 @@ import shutil
 
 app = FastAPI()
 
-BASE_DIR = "/tmp/magic-pdf/"
+# Update the directories for Docker
+BASE_DIR = "/app/downloads"
+MODELS_DIR = "/app/models"
+PARSED_DIR = "/app/parsed/magic-pdf"
 OUTPUT_DIR = "auto"
+
+# Ensure the parsed directory exists with the correct permissions
+os.makedirs(PARSED_DIR, exist_ok=True)
+os.chmod(PARSED_DIR, 0o755)
 
 
 @app.post("/process-pdf/")
@@ -17,6 +24,7 @@ async def process_pdf(pdf: UploadFile = File(...)):
     pdf_path = os.path.join(BASE_DIR, pdf_name)
 
     # Save the uploaded PDF
+    os.makedirs(BASE_DIR, exist_ok=True)
     with open(pdf_path, "wb") as f:
         shutil.copyfileobj(pdf.file, f)
 
@@ -25,20 +33,26 @@ async def process_pdf(pdf: UploadFile = File(...)):
         ["magic-pdf", "pdf-command", "--pdf", pdf_path, "--inside_model", "true"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        # env={
+        #     "MODELS_DIR": MODELS_DIR
+        # },  # Pass the models directory as an environment variable
     )
 
     if result.returncode != 0:
         return JSONResponse(status_code=500, content={"error": result.stderr.decode()})
 
     pdf_base_name = Path(pdf_name).stem
-    output_path = os.path.join(BASE_DIR, pdf_base_name, OUTPUT_DIR)
+    output_path = os.path.join(PARSED_DIR, pdf_base_name, OUTPUT_DIR)
 
     return {"message": "PDF processed successfully", "output_path": output_path}
 
 
 @app.get("/get-json/")
 async def get_json(pdf_name: str, json_file: str):
-    json_path = os.path.join(BASE_DIR, pdf_name, OUTPUT_DIR, json_file)
+    print(
+        f"JSON file path: {PARSED_DIR, pdf_name, OUTPUT_DIR, json_file}"
+    )  # Print the json_path
+    json_path = os.path.join(PARSED_DIR, pdf_name, OUTPUT_DIR, json_file)
 
     if not os.path.exists(json_path):
         return JSONResponse(status_code=404, content={"error": "JSON file not found"})
@@ -48,7 +62,7 @@ async def get_json(pdf_name: str, json_file: str):
 
 @app.get("/get-images/")
 async def get_images(pdf_name: str):
-    images_dir = os.path.join(BASE_DIR, pdf_name, OUTPUT_DIR, "images")
+    images_dir = os.path.join(PARSED_DIR, pdf_name, OUTPUT_DIR, "images")
 
     if not os.path.exists(images_dir):
         return JSONResponse(
@@ -67,7 +81,7 @@ async def get_images(pdf_name: str):
 
 @app.get("/get-image/")
 async def get_image(pdf_name: str, image_file: str):
-    image_path = os.path.join(BASE_DIR, pdf_name, OUTPUT_DIR, "images", image_file)
+    image_path = os.path.join(PARSED_DIR, pdf_name, OUTPUT_DIR, "images", image_file)
 
     if not os.path.exists(image_path):
         return JSONResponse(status_code=404, content={"error": "Image file not found"})
