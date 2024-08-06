@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . /app
 
 # Update the package index and install the necessary library
-RUN apt-get update && apt-get install -y libgl1-mesa-dev
+RUN apt-get update && apt-get install -y libgl1-mesa-dev && apt install -y libglib2.0-0
 
 # Install venv for creating a virtual environment
 RUN python -m venv /opt/venv
